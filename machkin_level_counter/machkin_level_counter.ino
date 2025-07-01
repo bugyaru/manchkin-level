@@ -13,6 +13,7 @@ struct Gamer {
 };
 
 Gamer gamer[GAMERS] = {};
+int gamerId[GAMERS] = {0,1,2,3,4,5};
 int cGamer = 0;
 int count = 0;
 int shift = 0;
@@ -45,6 +46,7 @@ int checkGamersCount(){
   int countG=0;
   for(int i=0; i<sizeof(gamer)/sizeof(gamer[0]);i++ ){
     if(gamer[i].level > 0){
+      gamerId[countG] = i;
       countG++;
     }
   }
@@ -55,15 +57,15 @@ int checkGamersCount(){
 void showGamer(){
   if(selMode==0){
     userChDelay=1500;
-    if(gamer[cGamer].level>0){
+    if(gamer[gamerId[cGamer]].level>0){
       strip.clear();
-      strip.fill(gamer[cGamer].color,0,gamer[cGamer].level);  
+      strip.fill(gamer[gamerId[cGamer]].color,0,gamer[gamerId[cGamer]].level);  
       strip.setBrightness(BRIGHTNESS);
       strip.show();
     }
   }else if(selMode>0 && selMode <= GAMERS-shift){
     strip.clear();
-    strip.fill(gamer[selMode-1].color,0,gamer[selMode-1].level);
+    strip.fill(gamer[gamerId[selMode-1]].color,0,gamer[gamerId[selMode-1]].level);
     strip.setBrightness(BRIGHTNESS);
     strip.show();    
   }else if(selMode>GAMERS-shift){
@@ -123,7 +125,7 @@ void loop() {
       upBtnState = upBtn;      
       if (upBtnState == HIGH) {
         if(selMode>0 && (selMode-1)<GAMERS){
-          gamer[selMode-1].level++;
+          gamer[gamerId[selMode-1]].level++;
         }else if(selMode>GAMERS){
           checkGamers = true;
           showConfirm();
@@ -143,7 +145,7 @@ void loop() {
     if (downBtn != downBtnState) {
       downBtnState = downBtn;      
       if (downBtnState == HIGH) {
-        gamer[selMode-1].level--;
+        gamer[gamerId[selMode-1]].level--;
         showGamer();
       }
     }

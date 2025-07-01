@@ -1,0 +1,165 @@
+#include <Adafruit_NeoPixel.h>
+#define PIN 1
+#define PINBTS 0
+#define PINBTU 2
+#define PINBTD 3
+#define NUMPIXELS 10
+#define BRIGHTNESS 3
+#define GAMERS 6
+
+struct Gamer {
+    int level;
+    uint32_t color;
+};
+
+Gamer gamer[GAMERS] = {};
+int cGamer = 0;
+int count = 0;
+int shift = 0;
+int selMode=0;
+int msDelay=10;
+int userChDelay=1500;
+bool checkGamers = false;
+bool selBtnState,upBtnState,downBtnState;
+bool lastSelBtnState = LOW,lastUpBtnState = LOW,lastDownBtnState = LOW;
+unsigned long lastDebounceTimeSel = 0,lastDebounceTimeUp = 0,lastDebounceTimeDown = 0;
+unsigned long debounceDelay = 50;
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+
+void setup() {
+  pinMode (PINBTS, INPUT_PULLUP);
+  pinMode (PINBTU, INPUT_PULLUP);
+  pinMode (PINBTD, INPUT_PULLUP);  
+  gamer[0].color=strip.Color(255,0,0);
+  gamer[1].color=strip.Color(0,255,0);
+  gamer[2].color=strip.Color(0,0,255);
+  gamer[3].color=strip.Color(255,255,0);
+  gamer[4].color=strip.Color(128,0,255);
+  gamer[5].color=strip.Color(255,255,255);
+  strip.setBrightness(BRIGHTNESS);
+  strip.begin();
+  strip.show();
+}
+
+int checkGamersCount(){
+  int countG=0;
+  for(int i=0; i<sizeof(gamer)/sizeof(gamer[0]);i++ ){
+    if(gamer[i].level > 0){
+      countG++;
+    }
+  }
+  return GAMERS-countG;
+}
+
+
+void showGamer(){
+  if(selMode==0){
+    userChDelay=1500;
+    if(gamer[cGamer].level>0){
+      strip.clear();
+      strip.fill(gamer[cGamer].color,0,gamer[cGamer].level);  
+      strip.setBrightness(BRIGHTNESS);
+      strip.show();
+    }
+  }else if(selMode>0 && selMode <= GAMERS-shift){
+    strip.clear();
+    strip.fill(gamer[selMode-1].color,0,gamer[selMode-1].level);
+    strip.setBrightness(BRIGHTNESS);
+    strip.show();    
+  }else if(selMode>GAMERS-shift){
+    strip.clear();
+    if(checkGamers == true){
+      strip.fill(strip.Color(0,0,255),0,5);
+    }else{
+      strip.fill(strip.Color(0,0,255),9,1); 
+    }  
+    strip.setBrightness(BRIGHTNESS);
+    strip.show();    
+  }
+}
+
+
+void showConfirm(){
+  strip.clear();
+  for(int i=0; i<NUMPIXELS; i++){
+    strip.setPixelColor(i,strip.Color(random(255),random(255),random(255)));  
+    strip.setBrightness(BRIGHTNESS);
+    strip.show();
+  }
+  delay(200);
+}
+
+
+void loop() {
+  if (checkGamers == true){
+    shift=checkGamersCount();
+    checkGamers = false;
+    showGamer();
+  }
+  bool selBtn = digitalRead(PINBTS);
+  if (selBtn != lastSelBtnState) {
+    lastDebounceTimeSel = millis();
+  }
+  
+  if ((millis() - lastDebounceTimeSel) > debounceDelay) {
+    if (selBtn != selBtnState) {
+      selBtnState = selBtn;      
+      if (selBtnState == HIGH) {
+        selMode++;
+        if(selMode > GAMERS-shift+1) selMode=0;
+        showGamer();
+      }
+    }
+  }
+  lastSelBtnState = selBtn;
+
+  bool upBtn = digitalRead(PINBTU);
+  if (upBtn != lastUpBtnState) {
+    lastDebounceTimeUp = millis();
+  }
+  
+  if ((millis() - lastDebounceTimeUp) > debounceDelay) {
+    if (upBtn != upBtnState) {
+      upBtnState = upBtn;      
+      if (upBtnState == HIGH) {
+        if(selMode>0 && (selMode-1)<GAMERS){
+          gamer[selMode-1].level++;
+        }else if(selMode>GAMERS){
+          checkGamers = true;
+          showConfirm();
+        }
+        showGamer();
+      }
+    }
+  }
+  lastUpBtnState = upBtn;
+
+  bool downBtn = digitalRead(PINBTD);
+  if (downBtn != lastDownBtnState) {
+    lastDebounceTimeDown = millis();
+  }
+  
+  if ((millis() - lastDebounceTimeDown) > debounceDelay) {
+    if (downBtn != downBtnState) {
+      downBtnState = downBtn;      
+      if (downBtnState == HIGH) {
+        gamer[selMode-1].level--;
+        showGamer();
+      }
+    }
+  }
+  lastDownBtnState = downBtn;
+
+  if(count < userChDelay/msDelay){
+    count++;
+  }else{
+    count=0;
+    if(cGamer < GAMERS-shift-1){
+      cGamer++;
+    }else{
+      cGamer=0;
+    }
+    showGamer();
+  }
+  delay(10);
+}

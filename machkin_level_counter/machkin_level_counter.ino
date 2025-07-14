@@ -4,8 +4,8 @@
 #define PINBTU 2
 #define PINBTD 3
 #define NUMPIXELS 10
-#define BRIGHTNESS 3
-#define GAMERS 6
+#define BRIGHTNESS 10
+#define GAMERS 8
 
 struct Gamer {
     int level;
@@ -13,7 +13,7 @@ struct Gamer {
 };
 
 Gamer gamer[GAMERS] = {};
-int gamerId[GAMERS] = {0,1,2,3,4,5};
+int gamerId[GAMERS] = {0,1,2,3,4,5,6,7};
 int cGamer = 0;
 int count = 0;
 int shift = 0;
@@ -35,8 +35,10 @@ void setup() {
   gamer[1].color=strip.Color(0,255,0);
   gamer[2].color=strip.Color(0,0,255);
   gamer[3].color=strip.Color(255,255,0);
-  gamer[4].color=strip.Color(128,0,255);
+  gamer[4].color=strip.Color(80,0,255);
   gamer[5].color=strip.Color(255,255,255);
+  gamer[6].color=strip.Color(255,0,80);
+  gamer[7].color=strip.Color(0,255,255);
   strip.setBrightness(BRIGHTNESS);
   strip.begin();
   strip.show();

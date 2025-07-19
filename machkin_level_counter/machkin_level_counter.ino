@@ -18,9 +18,11 @@ int cGamer = 0;
 int count = 0;
 int shift = 0;
 int selMode=0;
+int rnd=0;
 int msDelay=10;
 int userChDelay=1500;
 bool checkGamers = false;
+bool showRnd = false;
 bool selBtnState,upBtnState,downBtnState;
 bool lastSelBtnState = LOW,lastUpBtnState = LOW,lastDownBtnState = LOW;
 unsigned long lastDebounceTimeSel = 0,lastDebounceTimeUp = 0,lastDebounceTimeDown = 0;
@@ -71,11 +73,17 @@ void showGamer(){
     strip.setBrightness(BRIGHTNESS);
     strip.show();    
   }else if(selMode>GAMERS-shift){
-    strip.clear();
     if(checkGamers == true){
+      strip.clear();
       strip.fill(strip.Color(0,0,255),0,5);
     }else{
-      strip.fill(strip.Color(0,0,255),9,1); 
+      if(showRnd == true){
+        showRandom();
+      }else{
+        strip.clear();
+        strip.fill(strip.Color(0,0,255),9,1);
+        strip.show();
+      } 
     }  
     strip.setBrightness(BRIGHTNESS);
     strip.show();    
@@ -93,8 +101,18 @@ void showConfirm(){
   delay(200);
 }
 
+void showRandom(){
+  strip.clear();
+  for(int i=0; i<rnd; i++){
+    strip.setPixelColor(i,strip.Color(random(10,255),random(10,255),random(10,255)));
+  }
+  strip.setBrightness(BRIGHTNESS-5);
+  strip.show();
+}
+
 
 void loop() {
+  
   if (checkGamers == true){
     shift=checkGamersCount();
     checkGamers = false;
@@ -110,6 +128,7 @@ void loop() {
       selBtnState = selBtn;      
       if (selBtnState == HIGH) {
         selMode++;
+        showRnd = false;
         if(selMode > GAMERS-shift+1) selMode=0;
         showGamer();
       }
@@ -147,7 +166,14 @@ void loop() {
     if (downBtn != downBtnState) {
       downBtnState = downBtn;      
       if (downBtnState == HIGH) {
-        gamer[gamerId[selMode-1]].level--;
+        if(selMode>0 && (selMode-1)<GAMERS){
+          gamer[gamerId[selMode-1]].level--;
+        }
+        if(selMode==(GAMERS-shift+1)){
+          showRnd = true;
+          rnd=(int)random(NUMPIXELS)+1;
+          showRandom();
+        }
         showGamer();
       }
     }
